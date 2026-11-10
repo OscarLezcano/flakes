@@ -1,0 +1,3 @@
+[brave-linux-x64]
+src.cmd = """curl -Ls -o /dev/null -w %{url_effective} 'https://github.com/brave/brave-browser/releases/latest' | sed 's#.*/tag/v##'"""
+fetch.url = "https://github.com/brave/brave-browser/releases/download/v$ver/brave-browser_$ver_amd64.deb"

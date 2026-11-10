@@ -1,0 +1,17 @@
+{
+    "brave-linux-x64": {
+        "cargoLock": null,
+        "date": null,
+        "extract": null,
+        "name": "brave-linux-x64",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "name": null,
+            "sha256": "sha256-Nk6VSirYTVuj4OIXoinVhzxK5xB9FeYSDkIHUpU5yI0=",
+            "type": "url",
+            "url": "https://github.com/brave/brave-browser/releases/download/v1.99.55/brave-browser_1.99.55_amd64.deb"
+        },
+        "version": "1.99.55"
+    }
+}

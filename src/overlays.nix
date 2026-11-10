@@ -11,6 +11,13 @@ let
       ;
   };
 
+  bravePackage = final: prev:
+    lib.optionalAttrs (prev.stdenv.hostPlatform.system == "x86_64-linux") {
+      brave = prev.callPackage ./brave.nix {
+        generated = final._flakesGenerated.brave;
+      };
+    };
+
   withGenerated =
     overlay:
     lib.composeManyExtensions [
@@ -22,7 +29,10 @@ rec {
   default = lib.composeManyExtensions [
     generatedSources
     vscodePackage
+    bravePackage
   ];
 
   vscode = withGenerated vscodePackage;
+
+  brave = withGenerated bravePackage;
 }

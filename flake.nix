@@ -22,15 +22,19 @@
         };
 
         perSystem =
-          { pkgs, ... }:
+          { pkgs, lib, system, ... }:
           let
             generated = pkgs.callPackage ./src/generated.nix { };
             vscode = pkgs.callPackage ./src/vscode.nix { generated = generated.vscode; };
+            brave = pkgs.callPackage ./src/brave.nix { generated = generated.brave; };
           in
           rec {
             checks = packages;
             packages = {
               inherit (vscode) vscode vscode-insider;
+            }
+            // lib.optionalAttrs (system == "x86_64-linux") {
+              inherit brave;
             };
           };
       }
