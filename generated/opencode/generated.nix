@@ -8,13 +8,13 @@
 {
   opencode = {
     pname = "opencode";
-    version = "v2.2.6";
+    version = "v2.2.7";
     src = fetchFromGitHub {
       owner = "anomalyco";
       repo = "opencode";
-      rev = "v2.2.6";
+      rev = "v2.2.7";
       fetchSubmodules = false;
-      sha256 = "sha256-6Of4/r4SKYtxMbHISu8/4yzSpCfHNGuTwfKdAKjNJnM=";
+      sha256 = "sha256-JPCR867ZoMbYNrCvAa3OnilsxVcktD3mHCGpR6o/nlw=";
     };
   };
 }

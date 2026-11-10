@@ -13,11 +13,11 @@
             "name": null,
             "owner": "anomalyco",
             "repo": "opencode",
-            "rev": "v2.2.6",
-            "sha256": "sha256-6Of4/r4SKYtxMbHISu8/4yzSpCfHNGuTwfKdAKjNJnM=",
+            "rev": "v2.2.7",
+            "sha256": "sha256-JPCR867ZoMbYNrCvAa3OnilsxVcktD3mHCGpR6o/nlw=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "v2.2.6"
+        "version": "v2.2.7"
     }
 }
