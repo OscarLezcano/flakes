@@ -27,6 +27,7 @@
             generated = pkgs.callPackage ./src/generated.nix { };
             vscode = pkgs.callPackage ./src/vscode.nix { generated = generated.vscode; };
             brave = pkgs.callPackage ./src/brave.nix { generated = generated.brave; };
+            opencode = pkgs.callPackage ./src/opencode.nix { generated = generated.opencode; };
           in
           rec {
             checks = packages;
@@ -35,6 +36,7 @@
             }
             // lib.optionalAttrs (system == "x86_64-linux") {
               inherit brave;
+              inherit opencode;
             };
           };
       }

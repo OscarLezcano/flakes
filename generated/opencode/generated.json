@@ -1,0 +1,23 @@
+{
+    "opencode": {
+        "cargoLock": null,
+        "date": null,
+        "extract": null,
+        "name": "opencode",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "anomalyco",
+            "repo": "opencode",
+            "rev": "v2.2.6",
+            "sha256": "sha256-6Of4/r4SKYtxMbHISu8/4yzSpCfHNGuTwfKdAKjNJnM=",
+            "sparseCheckout": [],
+            "type": "github"
+        },
+        "version": "v2.2.6"
+    }
+}
