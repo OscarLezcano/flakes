@@ -4,6 +4,7 @@
   callPackage,
   bun,
   darwin,
+  fetchurl,
   installShellFiles,
   makeBinaryWrapper,
   models-dev,
@@ -20,6 +21,30 @@ let
   sources = callPackage ../generated/opencode/generated.nix { };
   opencodeSource = sources.opencode;
 
+  # opencode 2.2.x requires Bun >= 1.4.4. Older Bun versions also lack the
+  # `extension` export of `ws`, which breaks the compiled binary at runtime.
+  bunSources = {
+    aarch64-darwin = {
+      file = "bun-darwin-aarch64.zip";
+      hash = "sha256-wkDX8My5DCY6hJ/NsJt+5iYw2SE0jtaq/ahrnVd7xRA=";
+    };
+    aarch64-linux = {
+      file = "bun-linux-aarch64.zip";
+      hash = "sha256-uqa7NvUdblhWHgK76oJQOKnfRU9nPW13bou/hvjHhQ4=";
+    };
+    x86_64-linux = {
+      file = "bun-linux-x64-baseline.zip";
+      hash = "sha256-4ERutVmVdy65iUvrrppr42jZhai5Jx7hJEhvmUbu3XY=";
+    };
+  };
+  bun' = bun.overrideAttrs (_: {
+    version = "1.4.4";
+    src = fetchurl {
+      url = "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/${bunSources.${stdenv.hostPlatform.system}.file}";
+      inherit (bunSources.${stdenv.hostPlatform.system}) hash;
+    };
+  });
+
   node_modules =
     finalAttrs:
     stdenv.mkDerivation {
@@ -35,7 +60,7 @@ let
       ];
 
       nativeBuildInputs = [
-        bun
+        bun'
         writableTmpDirAsHomeHook
       ];
 
@@ -83,7 +108,7 @@ let
 
       outputHash =
         if stdenv.hostPlatform.isLinux then
-          "sha256-e8mDIxjjiSQ9AZEZJ6WL2FxrH62iX7WIwQnfvgFD3H0="
+          "sha256-jLQpq4xXkOt0ZKcHh3eC2SI1SPjAkv1scsTEGMaOB5A="
         else if stdenv.hostPlatform.isDarwin then
           # It likely needs replacing too, but I have no idea how to test it.
           "sha256-6VvzodSiEko+Q9UldOJ0V4eV2Gd6JelpYNUMBnI5W/c="
@@ -102,14 +127,12 @@ stdenv.mkDerivation (finalAttrs: {
   src = opencodeSource.src;
 
   postPatch =
-    # Relax Bun version check to be a warning instead of an error
     ''
       substituteInPlace packages/script/src/index.ts \
         --replace-fail \
         'throw new Error(`This script requires bun@''${expectedBunVersionRange}' \
         'console.warn(`Warning: This script requires bun@''${expectedBunVersionRange}'
     ''
-    # Avoid requiring prettier just to format the schema JSON
     + ''
       substituteInPlace packages/cli/script/schema.ts \
         --replace-fail 'import { format } from "prettier"' 'const format = (s: string) => JSON.stringify(JSON.parse(s), null, 2)'
@@ -118,7 +141,7 @@ stdenv.mkDerivation (finalAttrs: {
   node_modules = node_modules finalAttrs;
 
   nativeBuildInputs = [
-    bun
+    bun'
     installShellFiles
     makeBinaryWrapper
     nodejs
