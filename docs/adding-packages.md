@@ -297,6 +297,7 @@ overlay para hacer `inherit (prev.callPackage ...) brave;`.
 Añade la sección correspondiente en `README.md` y ejecuta:
 
 ```sh
+git add .
 NIXPKGS_ALLOW_UNFREE=1 nix build --impure .#brave
 NIXPKGS_ALLOW_UNFREE=1 nix flake check --impure --no-build
 ```
