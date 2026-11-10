@@ -1,20 +1,5 @@
 {
   "nodes": {
-    "crane": {
-      "locked": {
-        "lastModified": 1792350552,
-        "narHash": "sha256-292lvpvxTGKryKxh3/3tcIVi85CwYGdl4oOi113Sob8=",
-        "owner": "ipetkov",
-        "repo": "crane",
-        "rev": "e675a36b7377bebe41d548388a2501cbb16d380d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ipetkov",
-        "repo": "crane",
-        "type": "github"
-      }
-    },
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": "nixpkgs-lib"
@@ -61,46 +46,11 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1682591986,
-        "narHash": "sha256-BU5dJ9MmZYsGr1Dnf8p5VV8cSbMKuNiqw4A14/V8pjo=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "1c8257a313a5eb4d5f86edc2d325a23ff8085b94",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "1c8257a313a5eb4d5f86edc2d325a23ff8085b94",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
-        "crane": "crane",
         "flake-parts": "flake-parts",
-        "nixpkgs": "nixpkgs",
-        "vericert": "vericert"
+        "nixpkgs": "nixpkgs"
       }
-    },
-    "vericert": {
-      "inputs": {
-        "flake-parts": [
-          "flake-parts"
-        ],
-        "nixpkgs": "nixpkgs_2"
-      },
-      "locked": {
-        "path": "vericert",
-        "type": "path"
-      },
-      "original": {
-        "path": "vericert",
-        "type": "path"
-      },
-      "parent": []
     }
   },
   "root": "root",

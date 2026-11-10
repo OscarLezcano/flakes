@@ -2,93 +2,108 @@
 
 ## Repository overview
 
-This repository is a multi-platform Nix flake that packages several independent
-tools and source-only wallpaper collections. The root flake uses `flake-parts`
-and supports Linux and Darwin on x86_64 and aarch64.
+This repository is a multi-platform Nix flake that uses `flake-parts`. This
+document covers only the VS Code packages: `vscode` (stable) and
+`vscode-insider`.
+
+The flake supports `x86_64-linux`, `aarch64-linux`, and `aarch64-darwin`. VS
+Code artifacts are fetched for the matching `linux-x64`, `linux-arm64`, and
+`darwin-arm64` targets.
 
 ## Layout
 
-- `flake.nix` defines supported systems, package outputs, checks, and exported
-  overlays.
-- `src/*.nix` contains hand-written package and overlay definitions.
-- `nvfetcher/<unit>.toml` files are the source of truth for dependencies
-  maintained by nvfetcher.
-- `generated/<unit>/generated.nix` and `generated/<unit>/generated.json` are
+- `flake.nix` exposes `vscode` and `vscode-insider` from `src/vscode.nix`.
+- `src/vscode.nix` contains the VS Code package logic for both channels.
+- `nvfetcher/vscode.toml` is the source of truth for VS Code download URLs.
+- `generated/vscode/generated.nix` and `generated/vscode/generated.json` are
   generated files; do not edit them by hand.
-- `src/generated.nix` aggregates every unit's generated nvfetcher expression
-  into an attribute set keyed by unit.
-- `vericert/` is a nested flake with its own pinned `nixpkgs` and lock file.
-- `.github/workflows/check.yml` runs the main flake check on all four supported
-  platform families.
-- `.github/workflows/nvfetcher.yml` performs scheduled dependency refreshes.
+- `src/generated.nix` exposes the `vscode` unit consumed by the package
+  definition.
+- `src/overlays.nix` exports the `vscode` overlay and includes VS Code in the
+  default overlay.
+- `.github/workflows/check.yml` evaluates the flake checks on the supported
+  systems.
+- `.github/workflows/nvfetcher.yml` refreshes generated sources on a schedule.
 
 The `result` path is a local Nix build symlink and is ignored by Git. Do not
 depend on or commit its contents.
 
+## How the VS Code packages work
+
+- `src/vscode.nix` maps the host platform to an nvfetcher entry prefix:
+  `isDarwin` selects `darwin-arm64`, `isAarch` selects `linux-arm64`, and any
+  other Linux target selects `linux-x64`.
+- Each channel looks up `vscode-${vsc-system}-${channel}` in `generated.vscode`,
+  where `channel` is `stable` or `insider`. Those entry names must keep this
+  exact shape.
+- The package version is read from the extracted `package.json` at
+  `Contents/Resources/app/package.json` on Darwin or
+  `resources/app/package.json` on Linux. Do not hard-code it.
+- On Linux, `libsoup_3` and `webkitgtk_4_1` are added as platform dependencies;
+  `curl` is added on every platform. Keep platform differences in
+  `src/vscode.nix` rather than in generated files.
+- Both channels reuse nixpkgs' `vscode`/`buildVscode` machinery by overriding the
+  source and version, and set `isInsiders` for the insider channel.
+
 ## Making changes
 
-- Keep package-specific logic in `src/<package>.nix`. Wire a new package into
-  `packages` in `flake.nix` and add an overlay in `src/overlays.nix` when the
-  package should also be consumable through overlays.
-- Package attributes automatically become flake checks, except for explicit
-  platform exclusions in `flake.nix`. A new package must therefore evaluate and
-  build as a check on every platform where it is exposed.
+- Keep VS Code package logic in `src/vscode.nix`. Wire any additional output
+  through `flake.nix` and `src/overlays.nix` when it should be consumable
+  through the overlay.
+- Preserve the existing Nix style: two-space indentation, argument sets at the
+  top of package files, `let` bindings for derived values, and trailing
+  semicolons. Keep diffs focused; do not reformat generated files.
 - Use Nix platform predicates such as `stdenv.hostPlatform.isLinux`, `isDarwin`,
   and `isAarch` when dependencies or artifacts vary by target. If an upstream
   artifact does not exist for a system, omit the package for that system rather
   than leaving a guaranteed failing derivation.
-- Preserve the existing Nix style: two-space indentation, argument sets at the
-  top of package files, `let` bindings for derived values, and trailing
-  semicolons. Keep diffs focused; do not reformat generated files.
-- When changing a fixed-output source manually, update its version/revision and
-  hash together. Prefer SRI hashes (`sha256-...`).
-- Treat `vericert/flake.lock` independently from the root `flake.lock`. Update
-  only the lock file associated with the flake whose inputs changed.
+- Package attributes automatically become flake checks. Both `vscode` and
+  `vscode-insider` must therefore evaluate and build as checks on every
+  supported platform.
+- Do not hard-code versions or fixed-output source hashes in `src/vscode.nix`;
+  all source versions and hashes must come from the `vscode` nvfetcher unit.
 
-## Updating generated sources
+## Updating VS Code sources
 
-Always use nvfetcher for package sources when it can represent the upstream.
-Add or update the source in the relevant `nvfetcher/<unit>.toml` and consume it
-through the matching unit in `src/generated.nix`; use a hand-written fixed-output
-fetcher only when nvfetcher cannot support the source. Do not hard-code versions
-or fixed-output source hashes in hand-written package expressions.
+Edit `nvfetcher/vscode.toml`. Each entry resolves the latest archive through
+`update.code.visualstudio.com` and fetches it as a tarball:
 
-Edit the relevant `nvfetcher/<unit>.toml`, then regenerate its two files under
-`generated/<unit>/`. To regenerate every source set, use:
-
-```sh
-./scripts/update-nvfetcher.sh
+```toml
+[vscode-linux-x64-stable]
+src.cmd = """curl -Ls -o /dev/null -w %{url_effective} 'https://update.code.visualstudio.com/latest/linux-x64/stable'"""
+fetch.tarball = "$ver"
 ```
 
-The script discovers every `nvfetcher/*.toml` file and passes its config and
-matching `generated/<unit>/` output directory to nvfetcher.
+Then regenerate only the VS Code unit:
 
-Review the generated diff and commit the configuration and generated outputs
-together. Entries consumed through `generated` must retain names that match the
-lookups in the relevant package definition (for example the platform-specific
-VS Code and Verus entries).
+```sh
+nix-shell -p nvfetcher --command \
+  "nvfetcher -v --keep-going -c nvfetcher/vscode.toml -o generated/vscode"
+```
+
+Review the generated diff and commit `nvfetcher/vscode.toml` together with
+`generated/vscode/generated.nix` and `generated/vscode/generated.json`.
+
+The generated entry names must continue to match the lookups in
+`src/vscode.nix`: `vscode-linux-x64-stable`, `vscode-linux-x64-insider`,
+`vscode-linux-arm64-stable`, `vscode-linux-arm64-insider`,
+`vscode-darwin-arm64-stable`, and `vscode-darwin-arm64-insider`.
+
+After a dependency refresh, build both VS Code packages rather than assuming
+that a successful source generation proves the archive layout or build
+interface is unchanged.
 
 ## Validation
 
-Run the narrowest relevant checks first, followed by the full flake evaluation
-when practical:
-
 ```sh
-# Evaluate all checks without building them.
+# Evaluate the flake checks, including both VS Code packages, without building.
 NIXPKGS_ALLOW_UNFREE=1 nix flake check --impure --no-build
 
-# Build one changed package on the current system.
-NIXPKGS_ALLOW_UNFREE=1 nix build --impure .#<package>
-
-# Match the main CI check (can be expensive).
-NIXPKGS_ALLOW_UNFREE=1 nix flake check --impure
+# Build both channels on the current system.
+NIXPKGS_ALLOW_UNFREE=1 nix build --impure .#vscode .#vscode-insider
 ```
 
 VS Code is unfree, so keep `NIXPKGS_ALLOW_UNFREE=1` and `--impure` when
-evaluating the complete package set. For platform-specific changes, local
-success covers only the current system; inspect conditionals for every supported
+evaluating or building it. For platform-specific changes, local success covers
+only the current system; inspect the platform mapping for every supported
 system and rely on the CI matrix for native cross-platform builds.
-
-After a dependency refresh, build each affected package rather than assuming
-successful source generation proves that its archive layout or build interface
-is unchanged.
