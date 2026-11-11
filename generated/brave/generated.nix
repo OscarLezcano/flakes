@@ -8,10 +8,10 @@
 {
   brave-linux-x64 = {
     pname = "brave-linux-x64";
-    version = "1.99.55";
+    version = "1.99.56";
     src = fetchurl {
-      url = "https://github.com/brave/brave-browser/releases/download/v1.99.55/brave-browser_1.99.55_amd64.deb";
-      sha256 = "sha256-Nk6VSirYTVuj4OIXoinVhzxK5xB9FeYSDkIHUpU5yI0=";
+      url = "https://github.com/brave/brave-browser/releases/download/v1.99.56/brave-browser_1.99.56_amd64.deb";
+      sha256 = "sha256-W1r00Qh1j+XoK3yxGa8gOXepD8s0ubBzGTF/hj84vHI=";
     };
   };
 }
